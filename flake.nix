@@ -17,7 +17,7 @@
         inherit inputs pkgs;
         modules = [
           ({ pkgs, config, ... }: {
-            languages.rust.enable = true;
+            packages = [ pkgs.rustup pkgs.gcc pkgs.worker-build pkgs.wasm-pack ];
           })
         ];
       };

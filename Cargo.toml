@@ -11,7 +11,13 @@ wasm-opt = false
 crate-type = ["cdylib"]
 
 [dependencies]
-worker = "0.0.15"
+tokio = "1.33.0"
+postgres-connector-types = { git = "https://github.com/grafbase/grafbase", branch = "main" }
+# tokio-postgres = { git = "https://github.com/grafbase/rust-postgres", default-features = false, features = ["js"] }
+worker = "0.0.18"
+futures = "0.3.29"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.17"
 
 [profile.release]
 lto = true
