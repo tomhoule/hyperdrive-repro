@@ -10,6 +10,10 @@ wasm-opt = false
 [lib]
 crate-type = ["cdylib"]
 
+[patch."https://github.com/grafbase/rust-postgres"]
+postgres-types = { path = "../../src/gh/grafbase/rust-postgres/postgres-types" }
+tokio-postgres = { path = "../../src/gh/grafbase/rust-postgres/tokio-postgres" }
+
 [dependencies]
 tokio = "1.33.0"
 postgres-connector-types = { git = "https://github.com/grafbase/grafbase", branch = "main" }

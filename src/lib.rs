@@ -11,14 +11,49 @@ async fn main(req: Request, env: Env, ctx: Context) -> Result<Response> {
         .get_binding::<HyperdriveBinding>("HYPERDRIVE")?
         .connection_string();
 
-    let transport = TcpTransport::new(&url)
+    let mut transport = TcpTransport::new(&url)
         .await
         .map_err(|err| err.to_string())?;
-    let mut rows = transport.parameterized_query("SELECT $1", vec!["hiiii".into()]);
 
-    while let Some(row) = rows.next().await {
-        let row = row.map_err(|err| err.to_string())?;
-        worker::console_log!("new row!");
+    {
+        let mut rows = transport.parameterized_query("SELECT * FROM pg_tables", vec![]);
+
+        worker::console_log!("Starting to stream new rows");
+        while let Some(row) = rows.next().await {
+            let row = row.map_err(|err| err.to_string())?;
+            worker::console_log!("new row! {row:#?}");
+        }
+    }
+
+    {
+        let transaction = &mut transport;
+        // let transaction = transport
+        //     .transaction()
+        //     .await
+        //     .map_err(|err| err.to_string())?;
+        worker::console_log!("Creating table");
+        transaction.parameterized_query(
+            "CREATE TABLE IF NOT EXIST values (id SERIAL PRIMARY KEY, value TEXT NOT NULL);",
+            vec![],
+        );
+
+        worker::console_log!("Inserting");
+        let rows = transaction
+            .parameterized_query("INSERT INTO values (value) VALUES ($1,) ($2,) ($3,)", vec![]);
+        let rows: Vec<_> = rows.collect::<Vec<_>>().await;
+        for row in rows {
+            row.map_err(|err| err.to_string())?;
+        }
+
+        worker::console_log!("Inserting again");
+        let rows = transaction.parameterized_query(
+            "INSERT INTO values  (value) VALUES ($1) ($2) ($3) ($4)",
+            vec![],
+        );
+        let rows: Vec<_> = rows.collect::<Vec<_>>().await;
+        for row in rows {
+            row.map_err(|err| err.to_string())?;
+        }
     }
 
     Response::ok(format!("Hi! hyperdrive url: {url:?}"))

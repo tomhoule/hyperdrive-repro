@@ -51,7 +51,7 @@ pub fn init() {
     use tracing_subscriber::prelude::*;
 
     INIT.call_once(|| {
-        let level = "trace"
+        let level = "debug"
             .parse::<tracing::Level>()
             .unwrap_or(tracing::Level::INFO);
         let subscriber = tracing_subscriber::registry()
